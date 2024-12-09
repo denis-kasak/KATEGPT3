@@ -8,6 +8,12 @@ import pickle
 import argparse
 import sacrebleu
 from utils import categories, templates, chunks, constructPrompt, cleanLabel, most_common
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_random_exponential,
+)  # for exponential backoff
+
 
 import openai
 openai.api_key = os.getenv("GPT3_KEY")
@@ -38,6 +44,10 @@ class glueComplete:
     def __init__(self):
         return
     def __call__(self, example="", max_tokens=5):
+        @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
+        def completion_with_backoff(**kwargs):
+            return openai.completions.create(**kwargs)
+        
         prompt = example
         response = openai.Completion.create(engine="davinci-msft", prompt=prompt, stop='\n', max_tokens=max_tokens, temperature=0.0, logprobs=1, n=1)
         resp = []
