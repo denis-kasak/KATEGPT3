@@ -49,7 +49,7 @@ class glueComplete:
             return openai.completions.create(**kwargs)
         
         prompt = example
-        response = openai.Completion.create(engine="davinci-msft", prompt=prompt, stop='\n', max_tokens=max_tokens, temperature=0.0, logprobs=1, n=1)
+        response = completion_with_backoff(model="gpt-3.5-turbo-instruct", prompt=prompt, stop='\n', max_tokens=max_tokens, temperature=0.0, logprobs=1, n=1)
         resp = []
         for c in response.choices:
             text = c.text
